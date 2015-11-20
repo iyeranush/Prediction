@@ -27,7 +27,3 @@ Assumed that sensor data or reports come in sorted order.
 10. That is the prediction. It can be changed as per need.
 11. Printed NULL in the output whereever there is no observation.
 
-ATTACHED:
-1. Input file.
-2. Sample Output file
-3. Source Code
