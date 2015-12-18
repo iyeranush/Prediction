@@ -20,18 +20,16 @@ using namespace std;
 typedef vector<double> Row;
 typedef vector<Row> Data;
 
-
-
 class Kalman
 {
  
     double T;
    
-    //%Since we need to find the covariance for 2 columns,
-    //%covariance matrix will be 2*2.
+    //Since we need to find the covariance for 2 columns,
+    //covariance matrix will be 2*2.
     public:
     
-    Data Sum(const Data &mat)
+    Data sumOfColumn(const Data &mat)
     {
         //This is a function to calculate the sum of 
         //the elements in one column of a matrix.    
@@ -50,14 +48,14 @@ class Kalman
         return sum_mat;
 
     }
-    Data mean(const Data &mat )
+    Data subtractMean(const Data &mat )
     {
         //This function subtracts mean from data. 
         size_t rows= mat.size();
         size_t cols=mat[0].size();
         Data sum_mat;
         //Calls Sum on the matrix mat.
-        sum_mat= Sum(mat);
+        sum_mat= sumOfColumn(mat);
        
         Data mean_mat(rows,Row(2));
         double meanY=sum_mat[0][0]/rows;
@@ -181,7 +179,7 @@ class Kalman
         //3.Variance
        
         size_t rows= mat.size();
-        Data mean_mat=mean(mat);
+        Data mean_mat=subtractMean(mat);
        
         //Deviation calls mat'.mat
         Data deviation_mat;
@@ -337,17 +335,17 @@ class Kalman
         size_t rows=mat.size();
         size_t cols=mat[0].size()-1;
         size_t n= A.size();//system Order
-        Data Xpredicted(rows+1,Row(n));//Kalman Predicted states here 311*4
-        Data Xfiltered(rows+1,Row(n,0));//Kalman Filtered states here 311*4
+        Data Xpredicted(rows+1,Row(n));//Kalman Predicted states 
+        Data Xfiltered(rows+1,Row(n,0));//Kalman Filtered states 
       
-        Xfiltered.at(0)=X0.at(0);//Filter Initialization.. c  PERFECT
+        Xfiltered.at(0)=X0.at(0);//Filter Initialization.. 
        // cout<< Xfiltered[0][0]<<"\t"<<Xfiltered[0][1]<<endl;
         Data P(n,Row(n));
-        P=P0;//Time=0... Assigned identity matrix with diagonal =100 PERFECT
+        P=P0;//Time=0... Assigned identity matrix 
         
         //Initial covariance matrix with uncertainity
         //Below are some dummy vectors too store temporary data.
-        //Xpred= A*Xfilt
+       
         Data tempPredTrans(1, Row(4));
         Data tempMat(2,Row(1));
        
@@ -364,7 +362,7 @@ class Kalman
         size_t ccol=C[0].size();
         Data Ctranspose(ccol,Row(crow));
         Ctranspose=transpose(C);
-        //Uncertainty update  P = A*P*A'+Q
+        //Uncertainty update  
         P=sum_matrix(multiply_matrix(multiply_matrix(A,P),transpose(A)),Q);
        
         Data PCtranspose(n,Row(crow));
@@ -377,7 +375,6 @@ class Kalman
         for(size_t t=1; t<rows+1;t++)
         {
             
-            //To find K=P*C'*inv(C*P*C'+R)
             PCtranspose=multiply_matrix(P,Ctranspose);
             
             CPCtranspose=multiply_matrix(C,PCtranspose);
@@ -393,21 +390,17 @@ class Kalman
 
             tempMat[0][0]=mat[t-1][0];
             tempMat[1][0]=mat[t-1][1];
-            //cout<< tempMat[0][0]<<"\t"<<tempMat[1][0]<<endl;
-            tempPred=transpose(tempPredTrans);//4*1
+        
+            tempPred=transpose(tempPredTrans);
 
-            L=multiply_matrix(C,tempPred);/////CORRECT
-            
-            //cout<<"L:"<< L[0][0]<<"\t"<<L[1][0]<<endl;
+            L=multiply_matrix(C,tempPred);
+
             M=subtract_matrix(tempMat,L);
 
-            //cout<<"M:"<< M[0][0]<<"\t"<<M[1][0]<<endl;
             N=multiply_matrix(K, M);
 
-            //cout<<"N:"<< N[0][0]<<"\t"<<N[1][0]<<endl;
             tempFilt=sum_matrix(tempPred, N);
 
-            //cout<< tempFilt[0][t]<<"\t"<<tempFilt[1][t]<<endl;
             Xfiltered.at(t) =transpose(tempFilt).at(0);
 
             //Uncertainity update
@@ -417,10 +410,8 @@ class Kalman
             tempPred=multiply_matrix(A,tempFilt);
 
             Xpredicted.at(t)=transpose(tempPred).at(0);
-
-            //cout<< Xpredicted[t][0]<<"\t"<<Xpredicted[t][1]<<endl;
+           
             P=sum_matrix(multiply_matrix(multiply_matrix(A,P),transpose(A)),Q);
-
 
             //Update A for new entry with timestamp
             if(t<rows)
@@ -429,8 +420,6 @@ class Kalman
                 T=0.5;  
             A=getSystemMatrix(T, n);
             
-            //cout<< "T"<<T<<endl;
-            //cout<< Xfiltered[t][0]<<"\t"<<Xfiltered[t][1]<<endl;
 
         }
         return Xfiltered;
@@ -449,7 +438,6 @@ class Kalman
         Data covar;
         //Covariance matrix of mat
         covar=covariance(mat);
-      
         //Explain why n=4
         size_t n=4;
         Data A(n,Row(n));
@@ -459,7 +447,7 @@ class Kalman
         // Measurement matrix of size p × n
         Data C(p,Row(n));
         C=getMeasurementMatrix(p,n);
-      //Covariance matrix of the process noise, n × n
+        //Covariance matrix of the process noise, n × n
         Data Q(n,Row(n));
         Q=getCovarianceNoise(n);
        
@@ -599,17 +587,12 @@ int main()
         for(int i=0;i<3;i++)
         {
         string tmp = *it;
-        //cout << "String val: " <<  tmp << endl;
         double d;
         d = strtod(tmp.c_str(), NULL);
         B[i]=d;
-        //cout << "Double val "<<i<<" :" << right << showpoint << B[i] << endl;
         it++;
         }
         mat.at(m)=B;
-        //for(int x=0;x<3;x++)
-           // cout<< mat[m][x]<<" ";
-        //cout<<endl;
         m++;
     }
 
